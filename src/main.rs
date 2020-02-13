@@ -8,23 +8,40 @@ use std::path::Path;
 use std::string;
 extern crate ndarray;
 
-type TRSPath = ndarray::Array1::<u32>;
+type DistanceTable = ndarray::Array2::<f32>;
+type TRSPath = ndarray::Array1::<usize>;
 
 fn main() {
 
     let (cities, distance_table) = load_cities("./european_cities.csv");
-    println!("{}", ndarray::Array::from(cities));
+    println!("{}", ndarray::Array::from(cities.clone()));
     println!("{}", distance_table);
+
+    let test_path: TRSPath = ndarray::array![1, 2, 3, 4, 5];
+
+    println!("{}", TRSPath::path_to_string(&cities, &test_path));
     
 }
 
+trait DistanceTableCompatible {
+    fn path_to_string(cities: &Vec<String>, path: &TRSPath) -> String;
+}
 
+impl DistanceTableCompatible for TRSPath {
+    fn path_to_string(cities: &Vec<String>, path: &TRSPath) -> String {
+        let mut ret = String::new();
+        for i in 0..path.len() {
+            ret.push_str(&cities[path[i]]);
+        }
+        ret
+    }
+}
 
-fn load_cities<P>(filename: P) -> (Vec<String>, ndarray::Array2::<f32>)
+fn load_cities<P>(filename: P) -> (Vec<String>, DistanceTable)
 where P: AsRef<Path> {
     if let Ok(line_buffer) = read_lines(filename) {
         let mut cities: Vec<String> = vec!();
-        let mut distance_table: ndarray::Array2::<f32>;
+        let mut distance_table: DistanceTable;
         let mut lines: Vec<String> = vec!();
         for line in line_buffer {
             if let Ok(l) = line {
